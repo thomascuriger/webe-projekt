@@ -1,11 +1,3 @@
-const messageType = {
-  REGISTER: 'register',
-  CHAT: 'chat',
-  GAMEUPDATE: 'gameupdate',
-  GAMESTART: 'gamestart',
-  GAMESTOP: 'gamestop',
-  SHOT: 'shot'
-};
 
 var websocketGame = {
   socket: {},
@@ -35,14 +27,8 @@ function waitStateInvoke(socket, data) {
 }
 
 function createMessage(messageType, value) {
-  let message = {
-    messageType: messageType,
-    value: value,
-    playerID: websocketGame.playerID,
-    playerName: websocketGame.playerName,
-    timestamp: new Date()
-  };
-  return JSON.stringify(message);
+  let message = new Message(messageType, value, websocketGame.playerID, websocketGame.playerName);
+  return message.toJSON();
 }
 
 function sleep(ms) {
@@ -86,35 +72,38 @@ function connect() {
         /* console.log('[MESSAGE] Data received from server: ' + event.data); */
 
         try {
-          let data = JSON.parse(event.data);
+          let message = new Message();
+          message.fromJSON(event.data);
+          // let data = JSON.parse(event.data);
           /* console.log('data', data, data['messageType']); */
-          switch (data.messageType) {
-            case messageType.CHAT:
-              chatLogEntry(data);
+          console.log("message", message.toJSON())
+          switch (message.getMessageType()) {
+            case MessageType.CHAT:
+              chatLogEntry(message.getObject());
               break;
-            case messageType.REGISTER:
+            case MessageType.REGISTER:
               // waitStateInvoke(this, event.data);
               break;
-            case messageType.GAMESTART:
+            case MessageType.GAMESTART:
               addCanvas();
               reset();
               gameLoop();
               websocketGame.running = true;
               break;
-            case messageType.GAMEUPDATE:
-              handleGameUpdate(data);
+            case MessageType.GAMEUPDATE:
+              handleGameUpdate(message.getObject());
               break;
-            case messageType.SHOT:
-              renderHit(data);
+            case MessageType.SHOT:
+              renderHit(message.getObject());
               break;
-            case messageType.GAMESTOP:
+            case MessageType.GAMESTOP:
               websocketGame.running = false;
               reset();
               removeCanvas();
               break;
             default:
               console.log(
-                "[MESSAGE.WARNING] Client doesn't expect this message: " + data
+                "[MESSAGE.WARNING] Client doesn't expect this message: " + message.toJSON()
               );
               break;
           }
@@ -153,9 +142,9 @@ function startGame() {
   $('#form-signin').submit(function (e) {
     console.log('[INFORMATION] start game');
 
-    //alert to avoid that player waits without open socket connection for another player
-    //e.g. if server is not running, there's an alert before
-    //but we don't deactivate the whole site
+    // alert to avoid that player waits without open socket connection for another player
+    // e.g. if server is not running, there's an alert before
+    // but we don't deactivate the whole site
     if (websocketGame.socket.readyState != 1) {
       console.log('[ERROR] Socket connection is not open.');
       alert(lang.ALERT_CONNECTIONLOST);
@@ -166,7 +155,7 @@ function startGame() {
       let playerIdentifier = websocketGame.playerID;
       websocketGame.playerName = playerName;
       /* console.log('info', playerName, playerIdentifier); */
-      let message = createMessage(messageType.REGISTER, {
+      let message = createMessage(MessageType.REGISTER, {
         playerIdentifier: playerIdentifier,
         playerName: playerName
       });
@@ -198,8 +187,8 @@ function handleChatText() {
 function sendChatText() {
   let input = $('#input-chat').val();
   console.log('[SEND] chat text: ' + input);
-  let message = new window.ChatMessage(input);// DIESE KACKE FUNKTIONIERT NICHT!
-  websocketGame.socket.send(message.toStream());
+  let message = createMessage(MessageType.CHAT, input);
+  websocketGame.socket.send(message);
 
   $('#input-chat').val('');
   // addChatText(input, false);
@@ -237,7 +226,7 @@ function addChatText(message, received) {
  * @param stream
  */
 function chatLogEntry(data) {
-  addChatText('[' + data.playerName + ']: ' + data.text, true);
+  addChatText('[' + data.playerName + ']: ' + data.value, true);
 }
 
 /**

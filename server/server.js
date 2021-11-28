@@ -1,12 +1,9 @@
 const WebSocket = require('ws');
-const Message = require('./communication/Message');
-const {ChatMessage} = require("./communication/ClientMessages/ChatMessage");
+const { Message, MessageType} = require("../shared/communication/Message.js");
 
 const server = new WebSocket.Server({ port: 8080 });
 
 console.log('Server Online\n');
-
-
 
 var websocketGame = {
   socket: {},
@@ -24,24 +21,24 @@ server.on('connection', socket => {
   });
   socket.onmessage = function (event) {
     try {
-      this.message = new Message.Message();
-      this.message.fromStream(event.data);
-      let data = JSON.parse(event.data);
-      switch (this.message.messageType) {
-        case Message.MessageType.CHAT:
+      let message = new Message();
+      message.fromJSON(event.data);
+      console.log("message", message.toJSON())
+      switch (message.getMessageType()) {
+        case MessageType.CHAT:
           broadcast(event.data);
           break;
-        case Message.MessageType.REGISTER:
-          gameStatus.registeredPlayers.set(socket.id, data.value);
+        case MessageType.REGISTER:
+          gameStatus.registeredPlayers.set(socket.id, message.getValue());
           break;
-        case Message.MessageType.GAMEUPDATE:
-          if (data.value.updateType == 2) {
-            addTower(data.value);
+        case MessageType.GAMEUPDATE:
+          if (message.getValue().updateType == 2) {
+            addTower(message.getValue());
           }
           broadcast(event.data);
           break;
         default:
-          console.log("[MESSAGE.WARNING] Client doesn't expect this message: " + data);
+          console.log("[MESSAGE.WARNING] Client doesn't expect this message: " + message.toJSON());
           break;
       }
     } catch (e) {
@@ -55,8 +52,8 @@ server.on('connection', socket => {
     gameStatus.started = false;
     gameStatus.countdown = 2;
     if (gameStatus.registeredPlayers.size < 2) {
-      let message = createMessage(Message.MessageType.GAMESTOP, 'stopping');
-      broadcast(message);
+      let message = new Message(MessageType.GAMESTOP, 'stopping');
+      broadcast(message.toJSON());
     }
   };
 });
@@ -129,16 +126,15 @@ async function gameLoop() {
       gameStatus.countdownStarted = true;
       console.log('Start Countdown');
     } else if (gameStatus.countdown > 0 && gameStatus.countdownStarted) {
-      let message = new ChatMessage();
-      message.text = 'Game start in ' + gameStatus.countdown;
-      broadcast(message);
+      let message = new Message(MessageType.CHAT, 'Game start in ' + gameStatus.countdown);
+      broadcast(message.toJSON());
       gameStatus.countdown--;
     } else if (gameStatus.countdown == 0 && !gameStatus.started) {
-      let message = createMessage(Message.MessageType.CHAT, 'LFG');
+      let message = new Message(MessageType.CHAT, 'LFG');
       gameStatus.started = true;
-      broadcast(message);
-      let message2 = createMessage(Message.MessageType.GAMESTART, 'starting');
-      broadcast(message2);
+      broadcast(message.toJSON());
+      let message2 = new Message(MessageType.GAMESTART, 'starting');
+      broadcast(message2.toJSON());
     } else if (gameStatus.started) {
       if ((i + 1) % 3 == 0) {
         shoot();
@@ -164,9 +160,9 @@ function spawnEnemy() {
     updateType: 1,
     type: 247
   };
-  let message = createMessage(Message.MessageType.GAMEUPDATE, value);
+  let message = new Message(MessageType.GAMEUPDATE, value);
   map.enemiesMoving.push([x,y,100,247])
-  broadcast(message);
+  broadcast(message.toJSON());
 }
 
 function addTower(event) {
@@ -212,8 +208,8 @@ function moveEnemies() {
     updateType: 0,
     enemiesMoving: map.enemiesMoving
   }
-  let message = createMessage(Message.MessageType.GAMEUPDATE, value);
-  broadcast(message)
+  let message = new Message(MessageType.GAMEUPDATE, value);
+  broadcast(message.toJSON())
 }
 
 server.getUniqueID = function () {
@@ -257,8 +253,8 @@ function calculateShot(tower, activeEnemyHp) {
       towerX: tower[0],
       towerY: tower[1]
     };
-    let message = createMessage(Message.MessageType.SHOT, value);
-    broadcast(message);
+    let message = new Message(MessageType.SHOT, value);
+    broadcast(message.toJSON());
     console.log('hit: ', 50 / distance);
     return 50 / distance;
   } else {
@@ -270,7 +266,7 @@ function calculateShot(tower, activeEnemyHp) {
 function broadcast(data) {
   server.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(data.toStream());
+      client.send(data);
     }
   });
 }

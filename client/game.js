@@ -99,7 +99,7 @@ function spawnTowerPlayerOne() {
     updateType: 2,
     type: 247
   };
-  let message = createMessage(messageType.GAMEUPDATE, value);
+  let message = createMessage(MessageType.GAMEUPDATE, value);
   websocketGame.socket.send(message);
 }
 
@@ -112,7 +112,7 @@ function spawnTowerPlayerTwo() {
     updateType: 2,
     type: 248
   };
-  let message = createMessage(messageType.GAMEUPDATE, value);
+  let message = createMessage(MessageType.GAMEUPDATE, value);
   websocketGame.socket.send(message);
 }
 
