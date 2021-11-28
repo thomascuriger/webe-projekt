@@ -1,0 +1,99 @@
+.d-none{
+    display: none;
+}
+html, body {
+    display: flex;
+    justify-content: center;
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 15px;
+}
+form {
+    border: 5px solid #f1f1f1;
+}
+#input-playername {
+    width: 100%;
+    padding: 16px 8px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+#btn-signin {
+    background-color: #8ebf42;
+    color: white;
+    padding: 14px 0;
+    margin: 10px 0;
+    border: none;
+    cursor: grabbing;
+    width: 100%;
+}
+#btn-signin:hover {
+     opacity: 0.8;
+ }
+h1 {
+    text-align:center;
+    fone-size:18;
+}
+
+.formcontainer {
+    text-align: left;
+    margin: 24px 50px 12px;
+}
+.container {
+    padding: 16px 0;
+    text-align:left;
+}
+#input-chat {
+    width:395px;
+    margin-left: 25px;
+    border:1px solid #ACD8F0; }
+#submit { width: 60px; }
+#chatEntries {
+    text-align:left;
+    margin: 0 auto 25px;
+    padding:10px;
+    background:#fff;
+    height:270px;
+    width:430px;
+    border:1px solid #ACD8F0;
+    overflow:auto; }
+#chat {
+    margin:0 auto;
+    padding-bottom:25px;
+    background:#EBF4FB;
+    width:504px;
+    border:1px solid #ACD8F0; }
+a {
+    color:#0000FF;
+    text-decoration:none; }
+
+a:hover { text-decoration:underline; }
+input { font:12px arial; }
+.float-left {
+    float: left;
+}
+
+.float-right {
+    float: right;
+}
+.chatcard-body {
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    min-height: 1px;
+}
+.chatcard-text:last-child {
+    margin: 0;
+}
+.chatcard {
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.25rem;
+}
